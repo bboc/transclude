@@ -37,11 +37,15 @@ class BasicTranscludeTests(unittest.TestCase):
 
     def test_simple_transclude(self):
         """Transclude replaces directive {{some_other_file.txt}} with contents of some_other_file.txt."""
+        """transclude looks for files in parent folder of source"""
         transclude_file(make_path("simple-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("simple-transclusion-result.md"))
 
+    def test_recursive_transclude(self):
+        """Transclude is recursive."""
+        transclude_file(make_path("recursive-transclusion.md"), self.target, 'md')
+        self.compare_results(make_path("recursive-transclusion-result.md"))
 
-"""Transclude is recursive."""
 
 """Transclude stops on recursive loop."""
 
@@ -51,7 +55,6 @@ class BasicTranscludeTests(unittest.TestCase):
 
 """Transclude ignores metadata in transculded file."""
 
-"""transclude looks for files in parent folder of source"""
 
 """with recursion, transclude looks for files relative to the file which transludes them."""
 

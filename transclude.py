@@ -20,10 +20,11 @@ def transclude_file(source_path, target, output_type):
 
 class TranscludeFile(object):
 
-    def __init__(self, source_path, target, output_type):
+    def __init__(self, source_path, target, output_type, transcludebase):
         self.type = output_type
         self.source_path = source_path
         self.target = target
+        self.transcludebase = transcludebase
 
     def transclude(self):
         with file(self.source_path, 'r') as self.source:
@@ -36,7 +37,8 @@ class TranscludeFile(object):
                     self.target.write(prefix)
                     tf = TranscludeFile(os.path.join(self.transcludebase, next_filename), 
                                         self.target, 
-                                        self.type)
+                                        self.type,
+                                        self.transcludebase)
                     tf.transclude()
                     self.target.write(line[offset:])
                     # TODO: write rest of line here
@@ -50,8 +52,8 @@ class TranscludeRoot(TranscludeFile):
 
     def __init__(self, source_path, target, output_type):
         """Set transcludebase."""
-        self.transcludebase = os.path.dirname(source_path)
-        super(TranscludeRoot, self).__init__(source_path, target, output_type)
+        transcludebase = os.path.dirname(source_path)
+        super(TranscludeRoot, self).__init__(source_path, target, output_type, transcludebase)
 
 
 class InvalidDirectiveException(Exception):

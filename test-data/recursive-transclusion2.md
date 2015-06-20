@@ -1,0 +1,1 @@
+This is some {{simple-transclusion2.md}} text, ended by two empty lines.
