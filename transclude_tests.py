@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from transclude import transclude_file
+from transclude import transclude_file, check_for_transclusion, InvalidDirectiveException, DuplicateDirectiveException
 from tempfile import NamedTemporaryFile
 import filecmp
 from difflib import context_diff
@@ -15,29 +15,30 @@ def make_path(file_name):
 class BasicTranscludeTests(unittest.TestCase):
 
     def setUp(self):
-
+        """Create tempfile as target, add cleanup methods to close and unlink tempfiles."""
         self.target = NamedTemporaryFile(delete=False)
-
         self.addCleanup(self.target.close)
         self.addCleanup(os.unlink, self.target.name)
 
-    def test_not_transclusion(self):
-        """Transcluding a file without transclude directive returns the original file."""
-
-        transclude_file(make_path("no-transclusion.md"), self.target, 'md')
-        self.compare_results(make_path("no-transclusion.md"))
-
-
     def compare_results(self, correct_path):
+        """Compare the actual result with the correct result."""
         with file(correct_path, 'r+') as correct:
-
             c = correct.readlines()
             self.target.seek(0)
             t = self.target.readlines()
             self.assertEqual(c, t)
-    
 
-"""Transclude replaces directive {{some_other_file.txt}} with contents of some_other_file.txt."""
+    def test_no_transclusion(self):
+        """Transcluding a file without transclude directive returns the original file."""
+        transclude_file(make_path("no-transclusion.md"), self.target, 'md')
+        self.compare_results(make_path("no-transclusion.md"))
+
+
+    def xtest_simple_transclude(self):
+        """Transclude replaces directive {{some_other_file.txt}} with contents of some_other_file.txt."""
+        transclude_file(make_path("simple-transclusion.md"), self.target, 'md')
+        self.compare_results(make_path("simple-transclusion-result.md"))
+        
 
 """Transclude is recursive."""
 
@@ -57,3 +58,20 @@ class BasicTranscludeTests(unittest.TestCase):
 
 """if metadata "Transclude Base" is set, transclude looks there for files."""
 
+
+class FindDirectiveTests(unittest.TestCase):
+
+    def test_no_directive(self):
+
+        result = check_for_transclusion("this line has no directive")
+        self.assertEqual(result, (False, "this line has no directive", None))
+
+    def test_one_directive(self):
+        result = check_for_transclusion('this line has a directive {{yay/foobar.md}}')
+        self.assertEqual(result, (True, 'this line has a directive ', 'yay/foobar.md'))
+
+    def test_incomplete_directive_raises_exception(self):
+        self.assertRaises(InvalidDirectiveException, check_for_transclusion, 'this line has a directive }}{{yay/foobar.md}}')
+
+    def test_second_directive_raises_exception(self):
+        self.assertRaises(DuplicateDirectiveException, check_for_transclusion, 'this line has two directives {{yay/foobar.md}} some text {{anotherone.md}}')
