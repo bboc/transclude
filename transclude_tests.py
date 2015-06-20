@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from transclude import transclude_file, check_for_transclusion, InvalidDirectiveException, DuplicateDirectiveException
+from transclude import transclude_file, check_for_transclusion, InvalidDirectiveException
 from tempfile import NamedTemporaryFile
 import filecmp
 from difflib import context_diff
@@ -43,14 +43,14 @@ class BasicTranscludeTests(unittest.TestCase):
 
     def test_recursive_transclude(self):
         """Transclude is recursive."""
-        transclude_file(make_path("recursive-transclusion.md"), self.target, 'md')
+        transclude_file(
+            make_path("recursive-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("recursive-transclusion-result.md"))
 
     def test_two_transclusions_in_one_line(self):
         """Two transclusion directives in one file are handled correctly."""
         transclude_file(make_path("double-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("double-transclusion-result.md"))
-
 
 
 """Transclude stops on recursive loop."""
@@ -86,13 +86,8 @@ class FindDirectiveTests(unittest.TestCase):
         self.assertRaises(InvalidDirectiveException, check_for_transclusion,
                           'this line has a directive }}{{yay/foobar.md}}')
 
-    def test_second_directive_raises_exception(self):
-        self.assertRaises(DuplicateDirectiveException, check_for_transclusion,
-                          'this line has two directives {{yay/foobar.md}} some text {{anotherone.md}}')
-
     def test_seek_offset_is_calculated_properly(self):
         result = check_for_transclusion(
             'this line has a directive {{yay/foobar.md}} and 19 characters.')
         self.assertEqual(
             result, (True, ('this line has a directive ', 'yay/foobar.md', 43)))
-

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-transclude multimarkdown files
-
+transclude multimarkdown files.
 """
 
 import os
@@ -31,20 +30,24 @@ class TranscludeFile(object):
     def transclude(self):
         with file(self.source_path, 'r') as self.source:
             # TODO read/skip metadata here
-            for line in self.source:
-
+            while True:
+                line = self.source.readline()
+                if line == '':
+                    break
                 found, data = check_for_transclusion(line)
                 if found:
                     prefix, next_filename, offset = data
                     self.target.write(prefix)
+
                     tf = TranscludeFile(os.path.join(self.transcludebase, next_filename),
                                         self.target,
                                         self.type,
                                         self.transcludebase)
                     tf.transclude()
-                    #self.source.seek(-(len(line))-offset, os.SEEK_CUR)
-                    self.target.write(line[offset:])
+                    self.source.seek(-(len(line) - offset), os.SEEK_CUR)
+
                 else:
+                    print line
                     self.target.write(line)
 
 
@@ -61,10 +64,6 @@ class TranscludeRoot(TranscludeFile):
 
 
 class InvalidDirectiveException(Exception):
-    pass
-
-
-class DuplicateDirectiveException(Exception):
     pass
 
 
@@ -85,9 +84,6 @@ def check_for_transclusion(line):
         end = line.find('}}')
         if end < start:
             raise InvalidDirectiveException(line)
-
-        # if line.find('{{', end) != -1:
-        #     raise DuplicateDirectiveException(line)
 
         return True, (line[:start], line[start + 2:end], end + 2)
 
@@ -110,4 +106,4 @@ def main():
     transclude(args.source_path, args.output, args.type)
 
 if __name__ == '__main__':
-    pass
+    main()
