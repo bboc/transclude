@@ -32,30 +32,30 @@ class BasicTranscludeTests(unittest.TestCase):
 
     def test_no_transclusion(self):
         """Transcluding a file without transclude directive returns the original file."""
-        transclude_file(make_path("no-transclusion.md"), self.target, 'md')
-        self.compare_results(make_path("no-transclusion.md"))
+        transclude_file(make_path("simple-test-result.md"), self.target, 'md')
+        self.compare_results(make_path("simple-test-result.md"))
 
     def test_simple_transclude(self):
         """Transclude replaces directive {{some_other_file.txt}} with contents of some_other_file.txt."""
         """transclude looks for files in parent folder of source"""
         transclude_file(make_path("simple-transclusion.md"), self.target, 'md')
-        self.compare_results(make_path("simple-transclusion-result.md"))
+        self.compare_results(make_path("simple-test-result.md"))
 
     def test_recursive_transclude(self):
         """Transclude is recursive."""
         transclude_file(
             make_path("recursive-transclusion.md"), self.target, 'md')
-        self.compare_results(make_path("recursive-transclusion-result.md"))
+        self.compare_results(make_path("simple-test-result.md"))
 
     def test_two_transclusions_in_one_line(self):
         """Two transclusion directives in one file are handled correctly."""
         transclude_file(make_path("double-transclusion.md"), self.target, 'md')
-        self.compare_results(make_path("double-transclusion-result.md"))
+        self.compare_results(make_path("simple-test-result.md"))
 
     def test_wildcard_transclusion(self):
         """Wildcard transclusion {{foo.*}} wildcard is set according to type (tex, html, )"""
         transclude_file(make_path("wildcard-transclusion.md"), self.target, 'html')
-        self.compare_results(make_path("wildcard-transclusion-result.md"))
+        self.compare_results(make_path("simple-test-result.md"))
 
 
     def test_missing_file_raises_error(self):
@@ -73,7 +73,6 @@ class BasicTranscludeTests(unittest.TestCase):
 
 
 """Transclude ignores metadata in transculded file."""
-
 
 """with recursion, transclude looks for files relative to the file which transludes them."""
 
