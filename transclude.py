@@ -5,7 +5,9 @@ transclude multimarkdown files
 
 """
 
-import os, os.path
+import os
+import os.path
+
 
 def transclude(source_path, target_path, output_type):
     """Transclude source to target, use output_type for wildcards."""
@@ -35,8 +37,8 @@ class TranscludeFile(object):
                 if found:
                     prefix, next_filename, offset = data
                     self.target.write(prefix)
-                    tf = TranscludeFile(os.path.join(self.transcludebase, next_filename), 
-                                        self.target, 
+                    tf = TranscludeFile(os.path.join(self.transcludebase, next_filename),
+                                        self.target,
                                         self.type,
                                         self.transcludebase)
                     tf.transclude()
@@ -47,13 +49,15 @@ class TranscludeFile(object):
 
 
 class TranscludeRoot(TranscludeFile):
+
     """The root TranscludeFile sets transcludebase to file's basepath and 
     processes metadata 'transcludebase'."""
 
     def __init__(self, source_path, target, output_type):
         """Set transcludebase."""
         transcludebase = os.path.dirname(source_path)
-        super(TranscludeRoot, self).__init__(source_path, target, output_type, transcludebase)
+        super(TranscludeRoot, self).__init__(
+            source_path, target, output_type, transcludebase)
 
 
 class InvalidDirectiveException(Exception):
@@ -85,20 +89,22 @@ def check_for_transclusion(line):
         # if line.find('{{', end) != -1:
         #     raise DuplicateDirectiveException(line)
 
-        return True, (line[:start], line[start + 2:end], end+2)
+        return True, (line[:start], line[start + 2:end], end + 2)
 
 
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='transclude source markdown file to target file.')
-    parser.add_argument('source_path', 
-                       help='path to the source file')
-    parser.add_argument('output', 
-                       help='path to the output file')
+    parser = argparse.ArgumentParser(
+        description='transclude source markdown file to target file.')
+    parser.add_argument('source_path',
+                        help='path to the source file')
+    parser.add_argument('output',
+                        help='path to the output file')
     parser.add_argument('--type', default='md',
-                        choices=['md', 'latex', 'html', 'lyx', 'opml', 'rtf', 'odf'],
-                       help='file type for wildcard transclusion (default: md)')
+                        choices=[
+                            'md', 'latex', 'html', 'lyx', 'opml', 'rtf', 'odf'],
+                        help='file type for wildcard transclusion (default: md)')
 
     args = parser.parse_args()
     transclude(args.source_path, args.output, args.type)
