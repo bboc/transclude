@@ -7,9 +7,11 @@ from tempfile import NamedTemporaryFile
 import filecmp
 from difflib import context_diff
 
+
 def make_path(file_name):
-    test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test-data')
-    return os.path.join(test_dir, file_name)    
+    test_dir = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 'test-data')
+    return os.path.join(test_dir, file_name)
 
 
 class BasicTranscludeTests(unittest.TestCase):
@@ -33,12 +35,11 @@ class BasicTranscludeTests(unittest.TestCase):
         transclude_file(make_path("no-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("no-transclusion.md"))
 
-
-    def xtest_simple_transclude(self):
+    def test_simple_transclude(self):
         """Transclude replaces directive {{some_other_file.txt}} with contents of some_other_file.txt."""
         transclude_file(make_path("simple-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("simple-transclusion-result.md"))
-        
+
 
 """Transclude is recursive."""
 
@@ -64,14 +65,25 @@ class FindDirectiveTests(unittest.TestCase):
     def test_no_directive(self):
 
         result = check_for_transclusion("this line has no directive")
-        self.assertEqual(result, (False, "this line has no directive", None))
+        self.assertEqual(result, (False, None))
 
     def test_one_directive(self):
-        result = check_for_transclusion('this line has a directive {{yay/foobar.md}}')
-        self.assertEqual(result, (True, 'this line has a directive ', 'yay/foobar.md'))
+        result = check_for_transclusion(
+            'this line has one directive {{yay/foobar.md}}')
+        self.assertEqual(
+            result, (True, ('this line has one directive ', 'yay/foobar.md', 45)))
 
     def test_incomplete_directive_raises_exception(self):
-        self.assertRaises(InvalidDirectiveException, check_for_transclusion, 'this line has a directive }}{{yay/foobar.md}}')
+        self.assertRaises(InvalidDirectiveException, check_for_transclusion,
+                          'this line has a directive }}{{yay/foobar.md}}')
 
     def test_second_directive_raises_exception(self):
-        self.assertRaises(DuplicateDirectiveException, check_for_transclusion, 'this line has two directives {{yay/foobar.md}} some text {{anotherone.md}}')
+        self.assertRaises(DuplicateDirectiveException, check_for_transclusion,
+                          'this line has two directives {{yay/foobar.md}} some text {{anotherone.md}}')
+
+    def test_seek_offset_is_calculated_properly(self):
+        result = check_for_transclusion(
+            'this line has a directive {{yay/foobar.md}} and 19 characters.')
+        self.assertEqual(
+            result, (True, ('this line has a directive ', 'yay/foobar.md', 43)))
+

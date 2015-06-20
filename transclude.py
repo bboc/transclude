@@ -5,15 +5,18 @@ transclude multimarkdown files
 
 """
 
+import os, os.path
+
 def transclude(source_path, target_path, output_type):
     """Transclude source to target, use output_type for wildcards."""
-    with file(target_path, 'w+') as target: 
-        transclude_file(source_path, target, output_type, True)
+    with file(target_path, 'w+') as target:
+        transclude_file(source_path, target, output_type)
 
 
 def transclude_file(source_path, target, output_type):
     sf = TranscludeRoot(source_path, target, output_type)
     sf.transclude()
+
 
 class TranscludeFile(object):
 
@@ -22,45 +25,56 @@ class TranscludeFile(object):
         self.source_path = source_path
         self.target = target
 
-    def transclude(self): 
-        with file(self.source_path, 'r') as self.source: 
-            self.read_metadata()
-            transclude_base = self.transclude_base()
+    def transclude(self):
+        with file(self.source_path, 'r') as self.source:
+            # TODO read/skip metadata here
             for line in self.source:
-                self.target.write(line)
 
-    def read_metadata(self):
-        self.metadata = {}
-
-    def transclude_base(self):
-        return ''
-
+                found, data = check_for_transclusion(line)
+                if found:
+                    prefix, next_filename, offset = data
+                    self.target.write(prefix)
+                    tf = TranscludeFile(os.path.join(self.transcludebase, next_filename), 
+                                        self.target, 
+                                        self.type)
+                    tf.transclude()
+                    self.target.write(line[offset:])
+                    # TODO: write rest of line here
+                else:
+                    self.target.write(line)
 
 
 class TranscludeRoot(TranscludeFile):
-    """First TranscludeFile processes metadata 'transcludebase'."""
+    """The root TranscludeFile sets transcludebase to file's basepath and 
+    processes metadata 'transcludebase'."""
 
-    def transclude_base(self):
-        return self.metadata.get("transcludebase", None)
+    def __init__(self, source_path, target, output_type):
+        """Set transcludebase."""
+        self.transcludebase = os.path.dirname(source_path)
+        super(TranscludeRoot, self).__init__(source_path, target, output_type)
 
 
 class InvalidDirectiveException(Exception):
     pass
 
+
 class DuplicateDirectiveException(Exception):
     pass
 
+
 def check_for_transclusion(line):
     """Test if a line contains a transclusion. 
-   
-    Return tuple (found, prefix, filename)
+
+    Return tuple (found, data)
     found is True when a transclude directive has been found
+    data is tuple (prefix, filename, seek_offset) or none
     prefix is the string which prefixes the transclude directive,full line if none was found
     filename is the contents of the transclude directive, None if the line contains no directive.
+    seek_offset: is the offset to the position immediately after transclude directive 
     """
     start = line.find('{{')
-    if start == -1: 
-        return False, line, None 
+    if start == -1:
+        return False, None
     else:
         end = line.find('}}')
         if end < start:
@@ -69,7 +83,7 @@ def check_for_transclusion(line):
         if line.find('{{', end) != -1:
             raise DuplicateDirectiveException(line)
 
-        return True, line[:start], line[start+2:end]
+        return True, (line[:start], line[start + 2:end], end+2)
 
 
 def main():
