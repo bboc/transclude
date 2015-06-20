@@ -40,7 +40,10 @@ class TranscludeFile(object):
                 line = self.source.readline()
                 if line == '':
                     break
-                found, data = check_for_transclusion(line)
+                try: 
+                    found, data = check_for_transclusion(line)
+                except InvalidDirectiveException, e:
+                    raise InvalidDirectiveException(e[0], self.source_path)
                 if found:
                     prefix, next_filename, offset = data
                     self.target.write(prefix)
@@ -122,6 +125,11 @@ def main():
     except MissingFileException, e:
         print('ERROR: missing', e[0], 'in file', e[1], file=sys.stderr)
         sys.exit(1)
+    except InvalidDirectiveException, e:
+        print ('ERROR: broken transclude directive in', e[1], file=sys.stderr)
+        print ('offending line:: ', e[0], file=sys.stderr)
+        sys.exit(2)
+
 
 if __name__ == '__main__':
     main()
