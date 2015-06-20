@@ -39,6 +39,9 @@ class TranscludeFile(object):
                     prefix, next_filename, offset = data
                     self.target.write(prefix)
 
+                    if next_filename.endswith('*'):
+                        next_filename = next_filename[:-1] + self.type
+
                     tf = TranscludeFile(os.path.join(self.transcludebase, next_filename),
                                         self.target,
                                         self.type,
@@ -47,7 +50,6 @@ class TranscludeFile(object):
                     self.source.seek(-(len(line) - offset), os.SEEK_CUR)
 
                 else:
-                    print line
                     self.target.write(line)
 
 
