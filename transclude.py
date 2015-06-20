@@ -89,7 +89,19 @@ def check_for_transclusion(line):
 
 
 def main():
-    pass
+    import argparse
+
+    parser = argparse.ArgumentParser(description='transclude source markdown file to target file.')
+    parser.add_argument('source_path', 
+                       help='path to the source file')
+    parser.add_argument('output', 
+                       help='path to the output file')
+    parser.add_argument('--type', default='md',
+                        choices=['md', 'latex', 'html', 'lyx', 'opml', 'rtf', 'odf'],
+                       help='file type for wildcard transclusion (default: md)')
+
+    args = parser.parse_args()
+    transclude(args.source_path, args.output, args.type)
 
 if __name__ == '__main__':
     pass
