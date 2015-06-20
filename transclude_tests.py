@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from transclude import transclude_file, check_for_transclusion, InvalidDirectiveException
+from transclude import transclude_file, check_for_transclusion, InvalidDirectiveException, MissingFileException
 from tempfile import NamedTemporaryFile
 import filecmp
 from difflib import context_diff
@@ -52,15 +52,24 @@ class BasicTranscludeTests(unittest.TestCase):
         transclude_file(make_path("double-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("double-transclusion-result.md"))
 
-    def test_two_transclusions_in_one_line(self):
+    def test_wildcard_transclusion(self):
         """Wildcard transclusion {{foo.*}} wildcard is set according to type (tex, html, )"""
         transclude_file(make_path("wildcard-transclusion.md"), self.target, 'html')
         self.compare_results(make_path("wildcard-transclusion-result.md"))
 
 
+    def test_missing_file_raises_error(self):
+        """transclude outputs an error when a file to transclude is not found."""
+        self.assertRaises(MissingFileException, 
+                          transclude_file,
+                          make_path("missing-transclusion.md"), 
+                          self.target, 
+                          'md')
+
+
 """Transclude stops on recursive loop."""
 
-"""transclude outputs an error when a file to transclude is not found."""
+
 
 
 """Transclude ignores metadata in transculded file."""

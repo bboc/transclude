@@ -4,6 +4,8 @@
 transclude multimarkdown files.
 """
 
+from __future__ import print_function
+
 import os
 import os.path
 
@@ -17,6 +19,10 @@ def transclude(source_path, target_path, output_type):
 def transclude_file(source_path, target, output_type):
     sf = TranscludeRoot(source_path, target, output_type)
     sf.transclude()
+
+
+class MissingFileException(Exception):
+    pass
 
 
 class TranscludeFile(object):
@@ -42,7 +48,13 @@ class TranscludeFile(object):
                     if next_filename.endswith('*'):
                         next_filename = next_filename[:-1] + self.type
 
-                    tf = TranscludeFile(os.path.join(self.transcludebase, next_filename),
+                    next_file = os.path.join(
+                        self.transcludebase, next_filename)
+                    if not os.path.exists(next_file):
+                        raise MissingFileException(
+                            self.source_path, next_filename)
+
+                    tf = TranscludeFile(next_file,
                                         self.target,
                                         self.type,
                                         self.transcludebase)
@@ -92,7 +104,7 @@ def check_for_transclusion(line):
 
 def main():
     import argparse
-
+    import sys
     parser = argparse.ArgumentParser(
         description='transclude source markdown file to target file.')
     parser.add_argument('source_path',
@@ -105,7 +117,11 @@ def main():
                         help='file type for wildcard transclusion (default: md)')
 
     args = parser.parse_args()
-    transclude(args.source_path, args.output, args.type)
+    try:
+        transclude(args.source_path, args.output, args.type)
+    except MissingFileException, e:
+        print('ERROR: missing', e[0], 'in file', e[1], file=sys.stderr)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
