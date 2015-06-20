@@ -46,6 +46,12 @@ class BasicTranscludeTests(unittest.TestCase):
         transclude_file(make_path("recursive-transclusion.md"), self.target, 'md')
         self.compare_results(make_path("recursive-transclusion-result.md"))
 
+    def test_two_transclusions_in_one_line(self):
+        """Two transclusion directives in one file are handled correctly."""
+        transclude_file(make_path("double-transclusion.md"), self.target, 'md')
+        self.compare_results(make_path("double-transclusion-result.md"))
+
+
 
 """Transclude stops on recursive loop."""
 

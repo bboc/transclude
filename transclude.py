@@ -40,8 +40,8 @@ class TranscludeFile(object):
                                         self.type,
                                         self.transcludebase)
                     tf.transclude()
+                    #self.source.seek(-(len(line))-offset, os.SEEK_CUR)
                     self.target.write(line[offset:])
-                    # TODO: write rest of line here
                 else:
                     self.target.write(line)
 
@@ -82,8 +82,8 @@ def check_for_transclusion(line):
         if end < start:
             raise InvalidDirectiveException(line)
 
-        if line.find('{{', end) != -1:
-            raise DuplicateDirectiveException(line)
+        # if line.find('{{', end) != -1:
+        #     raise DuplicateDirectiveException(line)
 
         return True, (line[:start], line[start + 2:end], end+2)
 
