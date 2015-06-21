@@ -1,24 +1,82 @@
 # -*- coding: utf-8 -*-
 
+import unittest
+import os
+from transclude import transclude_file, check_for_transclusion, InvalidDirectiveException, MissingFileException
 
-"""metadata must begin at the very top of the document"""
+from textwrap import dedent
 
-"""no blank lines can precede it."""
+from StringIO import StringIO
 
-"""There can optionally be a --- on the line before and after the metadata."""
+# TODO: multiline metadata
 
-"""The line after the metadata can also be ...."""
+class MetadataTests(unittest.TestCase):
 
-"""after the metadata is finished, a blank line triggers the beginning of the rest of the document."""
+    def test_prefix_dashes(self):
+        """There can optionally be a --- on the line before the metadata."""
+
+        metadata = dedent("""---
+            foo: bar:baz
+
+            nometa: this
+        """)
+
+    def test_followed_by_dashes(self):
+        """There can optionally be a --- on the line after the metadata."""
+
+        metadata = dedent("""foo: bar:baz
+            ---
+            nometa: this
+            """)
+
+    def test_followed_by_dots(self):
+        """The line after the metadata can also be ...."""
+
+        metadata = dedent("""foo: bar:baz
+            ....
+            nometa: this
+            """)
+
+    def test_no_blank_line_before(self):
+        """metadata must begin at the very top of the document, no blank lines can precede it."""
+
+        metadata = dedent("""
+            nometa: this
+            """)
+
+    def test_(self):
+        """after the metadata is finished, a blank line triggers the beginning of the rest of the document."""
+
+        metadata = dedent("""
+        """)
 
 
-"""metadata key must begin at the beginning of the line"""
+    def test_(self):
+        """metadata key must begin at the beginning of the line"""
 
-"""metadata key starts with an ASCII letter or a number"""
+        metadata = dedent("""
+        """)
 
-"""end of the metadata key is specified with a colon (‘:’)"""
+    def test_(self):
+        """metadata key starts with an ASCII letter or a number"""
 
-"""after the colon comes the metadata value, which can consist of pretty much any characters (including new lines)."""
+        metadata = dedent("""
+        """)
 
-"""Metadata keys are case insensitive and stripped of all spaces during processing."""
+    def test_(self):
+        """end of the metadata key is specified with a colon (‘:’)"""
 
+        metadata = dedent("""
+        """)
+
+    def test_(self):
+        """after the colon comes the metadata value, which can consist of pretty much any characters (including new lines)."""
+
+        metadata = dedent("""
+        """)
+
+    def test_(self):
+        """Metadata keys are case insensitive and stripped of all spaces during processing."""
+
+        metadata = dedent("""
+        """)
