@@ -16,7 +16,7 @@ def read_metadata(source_file):
             first = False
             if line == '':
                 # no metadata
-                # TODO: change seek 
+                source_file.seek(0)
                 break
             elif line == '---':
                 # begin metadata

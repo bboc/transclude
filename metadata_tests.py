@@ -29,6 +29,7 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertDictContainsSubset(
             {'foo': 'bar:baz'}, metadata, repr(metadata))
         self.assertFalse(metadata.has_key('nometa'))
+        self.assertEqual('nometa: this\n', source.readline())
 
     def test_followed_by_dashes(self):
         """There can optionally be a --- on the line after the metadata."""
@@ -42,6 +43,7 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertDictContainsSubset(
             {'foo': 'bar:baz'}, metadata, repr(metadata))
         self.assertFalse(metadata.has_key('nometa'))
+        self.assertEqual('nometa: this\n', source.readline())
 
     def test_followed_by_dots(self):
         """The line after the metadata can also be ..."""
@@ -55,6 +57,7 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertDictContainsSubset(
             {'foo': 'bar:baz'}, metadata, repr(metadata))
         self.assertFalse(metadata.has_key('nometa'))
+        self.assertEqual('nometa: this\n', source.readline())        
 
     def test_(self):
         """after the metadata is finished, a blank line triggers the beginning of the rest of the document."""
@@ -65,7 +68,10 @@ class MetadataSectionTests(unittest.TestCase):
             nometa: this
         """))
         metadata = read_metadata(source)
+        self.assertDictContainsSubset(
+            {'foo': 'bar:baz'}, metadata, repr(metadata))
         self.assertFalse(metadata.has_key('nometa'))
+        self.assertEqual('nometa: this\n', source.readline())        
 
     def test_no_blank_line_before(self):
         """metadata must begin at the very top of the document, no blank lines can precede it."""
@@ -75,39 +81,16 @@ class MetadataSectionTests(unittest.TestCase):
             nometa: this
             """))
         metadata = read_metadata(source)
+        self.assertEqual(metadata, {})
         self.assertFalse(metadata.has_key('nometa'))
+        self.assertEqual('\n', source.readline())
 
 
 class MetadataKeyValueTests(unittest.TestCase):
 
-    def test_(self):
-        """metadata key must begin at the beginning of the line"""
-
-        source = StringIO(dedent("""\
-
-        """))
-        metadata = read_metadata(source)
-
-    def test_(self):
-        """metadata key starts with an ASCII letter or a number"""
-
-        source = StringIO(dedent("""\
-        """))
-        metadata = read_metadata(source)
-
-    def test_(self):
-        """end of the metadata key is specified with a colon (‘:’)"""
-
-        source = StringIO(dedent("""\
-        """))
-        metadata = read_metadata(source)
-
-    def test_(self):
-        """after the colon comes the metadata value, which can consist of pretty much any characters (including new lines)."""
-
-        source = StringIO(dedent("""\
-        """))
-        metadata = read_metadata(source)
+    """metadata key must begin at the beginning of the line"""
+    """metadata key starts with an ASCII letter or a number"""
+    """after the colon comes the metadata value, which can consist of pretty much any characters (including new lines)."""
 
     def test_(self):
         """Metadata keys are case insensitive and stripped of all spaces during processing."""
