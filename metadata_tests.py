@@ -85,6 +85,17 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertFalse(metadata.has_key('nometa'))
         self.assertEqual('\n', source.readline())
 
+    def test_seek_to_zero_if_first_line_has_no_key(self):
+        source = StringIO(dedent("""\
+            this is not metadata.
+
+            nometa: this
+            """))
+        metadata = read_metadata(source)
+        self.assertEqual(metadata, {})
+        self.assertFalse(metadata.has_key('nometa'))
+        self.assertEqual('this is not metadata.\n', source.readline())
+
 
 class MetadataKeyValueTests(unittest.TestCase):
 

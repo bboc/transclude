@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import os
 import os.path
+from metadata import read_metadata
 
 
 def transclude(source_path, target_path, output_type):
@@ -27,45 +28,47 @@ class MissingFileException(Exception):
 
 class TranscludeFile(object):
 
-    def __init__(self, source_path, target, output_type, transcludebase):
-        self.type = output_type
+    def __init__(self, source_path, target, output_type):
         self.source_path = source_path
         self.target = target
-        self.transcludebase = transcludebase
+        self.type = output_type
+
+        self.source = file(self.source_path, 'r')
+        self.transcludebase = os.path.dirname(source_path)
+
+        self.metadata = read_metadata(self.source)
 
     def transclude(self):
-        with file(self.source_path, 'r') as self.source:
-            # TODO read/skip metadata here
-            while True:
-                line = self.source.readline()
-                if line == '':
-                    break
-                try: 
-                    found, data = check_for_transclusion(line)
-                except InvalidDirectiveException, e:
-                    raise InvalidDirectiveException(e[0], self.source_path)
-                if found:
-                    prefix, next_filename, offset = data
-                    self.target.write(prefix)
+        while True:
+            line = self.source.readline()
+            if line == '':
+                break
+            try:
+                found, data = check_for_transclusion(line)
+            except InvalidDirectiveException, e:
+                raise InvalidDirectiveException(e[0], self.source_path)
+            if found:
+                prefix, next_filename, offset = data
+                self.target.write(prefix)
 
-                    if next_filename.endswith('*'):
-                        next_filename = next_filename[:-1] + self.type
+                if next_filename.endswith('*'):
+                    next_filename = next_filename[:-1] + self.type
 
-                    next_file = os.path.join(
-                        self.transcludebase, next_filename)
-                    if not os.path.exists(next_file):
-                        raise MissingFileException(
-                            self.source_path, next_filename)
+                next_file = os.path.join(
+                    self.transcludebase, next_filename)
 
-                    tf = TranscludeFile(next_file,
-                                        self.target,
-                                        self.type,
-                                        self.transcludebase)
-                    tf.transclude()
-                    self.source.seek(-(len(line) - offset), os.SEEK_CUR)
+                if not os.path.exists(next_file):
+                    raise MissingFileException(
+                        self.source_path, next_filename, os.getcwd())
 
-                else:
-                    self.target.write(line)
+                tf = TranscludeFile(next_file,
+                                    self.target,
+                                    self.type)
+                tf.transclude()
+                self.source.seek(-(len(line) - offset), os.SEEK_CUR)
+
+            else:
+                self.target.write(line)
 
 
 class TranscludeRoot(TranscludeFile):
@@ -75,9 +78,12 @@ class TranscludeRoot(TranscludeFile):
 
     def __init__(self, source_path, target, output_type):
         """Set transcludebase."""
-        transcludebase = os.path.dirname(source_path)
         super(TranscludeRoot, self).__init__(
-            source_path, target, output_type, transcludebase)
+            source_path, target, output_type)
+        self.source.seek(0)  # rewind to include metadata of root file
+        if self.metadata.has_key('transcludebase'):
+            self.transcludebase = os.path.join(
+                self.transcludebase, self.metadata['transcludebase'].strip())
 
 
 class InvalidDirectiveException(Exception):
@@ -123,7 +129,8 @@ def main():
     try:
         transclude(args.source_path, args.output, args.type)
     except MissingFileException, e:
-        print('ERROR: missing', e[0], 'in file', e[1], file=sys.stderr)
+        print('ERROR: missing', e[0], 'in file', e[
+              1], 'current working directory:', e[2], file=sys.stderr)
         sys.exit(1)
     except InvalidDirectiveException, e:
         print ('ERROR: broken transclude directive in', e[1], file=sys.stderr)

@@ -21,6 +21,10 @@ def read_metadata(source_file):
             elif line == '---':
                 # begin metadata
                 continue
+            elif not line[0].isalnum() or line.find(':') == -1:
+                # no metadata: seek zero and return
+                source_file.seek(0)
+                break
         else:
             if line in ['', '---', '...']:
                 # end of metadata

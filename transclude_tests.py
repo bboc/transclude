@@ -54,31 +54,39 @@ class BasicTranscludeTests(unittest.TestCase):
 
     def test_wildcard_transclusion(self):
         """Wildcard transclusion {{foo.*}} wildcard is set according to type (tex, html, )"""
-        transclude_file(make_path("wildcard-transclusion.md"), self.target, 'html')
+        transclude_file(
+            make_path("wildcard-transclusion.md"), self.target, 'html')
         self.compare_results(make_path("simple-test-result.md"))
-
 
     def test_missing_file_raises_error(self):
         """transclude outputs an error when a file to transclude is not found."""
-        self.assertRaises(MissingFileException, 
+        self.assertRaises(MissingFileException,
                           transclude_file,
-                          make_path("missing-transclusion.md"), 
-                          self.target, 
+                          make_path("missing-transclusion.md"),
+                          self.target,
                           'md')
+
+    def test_transclude_base(self):
+        """If metadata "Transclude Base" is set, transclude looks there for files."""
+        transclude_file(
+            make_path("new-transclude-base.md"), self.target, 'html')
+        self.compare_results(make_path("new-transclude-base-result.md"))
+
+    def test_recursion_nested_folders(self):
+        """Transclude ignores metadata in transculded file."""
+        """with recursion, transclude looks for files relative to the file which transludes them."""
+        """after recursion, transclude looks for files again relative to source."""
+        """metadata of recursed files is ignored in result."""
+        """metadata of source file is included in result"""
+        # TODO: split into smaller tests
+        transclude_file(
+            make_path("recursive-subfolder.md"), self.target, 'html')
+        self.compare_results(make_path("recursive-subfolder-result.md"))
 
 
 """Transclude stops on recursive loop."""
 
-
-
-
-"""Transclude ignores metadata in transculded file."""
-
-"""with recursion, transclude looks for files relative to the file which transludes them."""
-
-"""after recursion, transclude looks for files again relative to source."""
-
-"""if metadata "Transclude Base" is set, transclude looks there for files."""
+"""metadata "Transclude Base" is only evaluated in the first file."""
 
 
 class FindDirectiveTests(unittest.TestCase):
