@@ -10,9 +10,6 @@ from StringIO import StringIO
 
 from metadata import read_metadata
 
-# TODO: multiline metadata
-# TODO: check file seek pointer in each section test
-
 
 class MetadataSectionTests(unittest.TestCase):
 
@@ -57,7 +54,7 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertDictContainsSubset(
             {'foo': 'bar:baz'}, metadata, repr(metadata))
         self.assertFalse(metadata.has_key('nometa'))
-        self.assertEqual('nometa: this\n', source.readline())        
+        self.assertEqual('nometa: this\n', source.readline())
 
     def test_(self):
         """after the metadata is finished, a blank line triggers the beginning of the rest of the document."""
@@ -71,7 +68,7 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertDictContainsSubset(
             {'foo': 'bar:baz'}, metadata, repr(metadata))
         self.assertFalse(metadata.has_key('nometa'))
-        self.assertEqual('nometa: this\n', source.readline())        
+        self.assertEqual('nometa: this\n', source.readline())
 
     def test_no_blank_line_before(self):
         """metadata must begin at the very top of the document, no blank lines can precede it."""
@@ -96,14 +93,35 @@ class MetadataSectionTests(unittest.TestCase):
         self.assertFalse(metadata.has_key('nometa'))
         self.assertEqual('this is not metadata.\n', source.readline())
 
+    def test_metadata_key_at_line_start(self):
+        """metadata key must begin at the beginning of the line"""
+        metadata = read_metadata(StringIO(dedent(""" this is not metadata.
+            nometa: this
+            """)))
+        self.assertEqual(metadata, {})
+        self.assertFalse(metadata.has_key('nometa'))
+
+    def test_metadata_key_first_character_is_alnum(self):
+        """metadata key starts with an ASCII letter or a number"""
+        metadata = read_metadata(StringIO(dedent("""\
+            wharrgarbl:this is metadata.
+            """)))
+        self.assertEqual(metadata, {'wharrgarbl': 'this is metadata.'})
+        metadata = read_metadata(StringIO(dedent("""\
+            2be or not 2 be:this is also metadata.
+            """)))
+        self.assertEqual(metadata, {'2beornot2be': 'this is also metadata.'})
+        metadata = read_metadata(StringIO(dedent("""\
+            -: this is not metadata.
+            nometa: this
+            """)))
+        self.assertEqual(metadata, {})
+        self.assertFalse(metadata.has_key('nometa'))
+        
 
 class MetadataKeyValueTests(unittest.TestCase):
 
-    """metadata key must begin at the beginning of the line"""
-    """metadata key starts with an ASCII letter or a number"""
-    """after the colon comes the metadata value, which can consist of pretty much any characters (including new lines)."""
-
-    def test_(self):
+    def test_keys_are_lowercased_and_stripped_of_spaces(self):
         """Metadata keys are case insensitive and stripped of all spaces during processing."""
 
         source = StringIO(dedent("""\
@@ -117,3 +135,33 @@ class MetadataKeyValueTests(unittest.TestCase):
             {'thisisonekey': 'first',
              'thisisanother': 'second'},
             metadata, repr(metadata))
+
+    def test_multiline_values(self):
+        """after the colon comes the metadata value, which can consist of pretty much any characters (including new lines)."""
+        """multiline metadata values are processed correctly."""
+        """If your metadata value includes a colon, it must be indented to keep it from being treated as a new key-value pair."""
+        source = StringIO(dedent("""\
+            multiline-key:This is the text of the first line of the key,
+            and this is the second line of the key.
+                funny enough, there's also a third line with some intentation.
+            simple-key:justoneword
+            another multiline key:here we go
+                with another line with a colon: yay
+
+            nometa: this
+        """))
+        metadata = read_metadata(source)
+        self.assertDictContainsSubset(
+            {'multiline-key': dedent("""\
+                This is the text of the first line of the key,
+                and this is the second line of the key.
+                    funny enough, there's also a third line with some intentation."""),
+             'simple-key': 'justoneword',
+             'anothermultilinekey': dedent("""\
+                here we go
+                    with another line with a colon: yay""")
+             },
+            metadata, 
+            #repr(metadata)
+            )
+

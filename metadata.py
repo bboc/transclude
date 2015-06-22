@@ -11,7 +11,7 @@ def read_metadata(source_file):
     metadata = {}
     first = True
     while True:
-        line = source_file.readline().strip()
+        line = source_file.readline().rstrip()
         if first:
             first = False
             if line == '':
@@ -30,11 +30,16 @@ def read_metadata(source_file):
                 # end of metadata
                 break
 
-        # extract key
-        pos = line.find(':')
-        key = line[:pos].replace(' ', '').lower()
-        value = line[pos+1:]
-        metadata[key] = value
+        # extract key or append value
+        if not line[0].isalnum() or line.find(':') == -1:
+            # multiline value, append to previous value
+            metadata[key] = '\n'.join((metadata[key],line))
+        else:
+            # create new key
+            pos = line.find(':')
+            key = line[:pos].replace(' ', '').lower()
+            value = line[pos+1:]
+            metadata[key] = value
     return metadata
 
 
