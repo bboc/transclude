@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
+
 def read_metadata(source_file):
     """Read metadata from source file.
 
     Return a dictionary with the metadata, set the file seek pointer to 
     the first character after the metadata.
     """
-    # import pdb
-    # pdb.set_trace()
     metadata = {}
     first = True
     while True:
@@ -33,23 +32,11 @@ def read_metadata(source_file):
         # extract key or append value
         if not line[0].isalnum() or line.find(':') == -1:
             # multiline value, append to previous value
-            metadata[key] = '\n'.join((metadata[key],line))
+            metadata[key] = '\n'.join((metadata[key], line))
         else:
             # create new key
             pos = line.find(':')
             key = line[:pos].replace(' ', '').lower()
-            value = line[pos+1:]
+            value = line[pos + 1:]
             metadata[key] = value
     return metadata
-
-
-if __name__ == '__main__':
-    from textwrap import dedent
-    from StringIO import StringIO
-    source = StringIO(dedent("""---
-        foo:bar:baz
-        ...
-        nometa: this
-        """))
-    metadata = read_metadata(source)
-

@@ -1,6 +1,6 @@
 # transclude
 
-commandline script to process file transclusion for MultiMarkDown-files.
+commandline script to process file transclusion for MultiMarkDown-files. Supports transcludebase metadata and wildcard transclusion.
 
 ## Usage 
 
