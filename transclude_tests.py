@@ -8,6 +8,9 @@ import filecmp
 from difflib import context_diff
 
 
+"""TODO: Transclude stops on recursive loop."""
+
+
 def make_path(file_name):
     test_dir = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'test-data')
@@ -68,6 +71,7 @@ class BasicTranscludeTests(unittest.TestCase):
 
     def test_transclude_base(self):
         """If metadata "Transclude Base" is set, transclude looks there for files."""
+        """metadata "Transclude Base" is only evaluated in the first file."""
         transclude_file(
             make_path("new-transclude-base.md"), self.target, 'html')
         self.compare_results(make_path("new-transclude-base-result.md"))
@@ -82,11 +86,6 @@ class BasicTranscludeTests(unittest.TestCase):
         transclude_file(
             make_path("recursive-subfolder.md"), self.target, 'html')
         self.compare_results(make_path("recursive-subfolder-result.md"))
-
-
-"""Transclude stops on recursive loop."""
-
-"""metadata "Transclude Base" is only evaluated in the first file."""
 
 
 class FindDirectiveTests(unittest.TestCase):
